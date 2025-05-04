@@ -1,0 +1,52 @@
+.post-manager {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 1rem;
+    font-family: Arial, sans-serif;
+  }
+  
+  .post-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .post-form input,
+  .post-form textarea {
+    padding: 8px;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
+  
+  .post-form button {
+    padding: 10px;
+    background-color: #2b7a78;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .post-form button:hover {
+    background-color: #205e5a;
+  }
+  
+  .post-list {
+    margin-top: 2rem;
+  }
+  
+  .post-card {
+    border: 1px solid #ddd;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    background-color: #f8f9fa;
+  }
+  
+  .post-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
