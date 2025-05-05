@@ -41,14 +41,19 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class PostSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
-    tags = TagSerializer(many=True,required=False)
+    tags = TagSerializer(many=True, required=False)
     comments = CommentSerializer(many=True, read_only=True)
     likes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ['id', 'title', 'content', 'author', 'created_at', 'updated_at', 'is_published', 'is_deleted', 'tags', 'comments', 'likes_count']
-        read_only_fields = ['author', 'created_at', 'updated_at', 'is_deleted', 'comments', 'likes_count']
+        fields = [
+            'id', 'title', 'content', 'author', 'created_at', 'updated_at',
+            'is_published', 'is_deleted', 'tags', 'comments', 'likes_count'
+        ]
+        read_only_fields = [
+            'author', 'created_at', 'updated_at', 'is_deleted', 'comments', 'likes_count'
+        ]
 
     def get_likes_count(self, obj):
         return obj.likes.count()
@@ -57,31 +62,44 @@ class PostSerializer(serializers.ModelSerializer):
         required_fields = ['title', 'content']
         missing = [field for field in required_fields if not data.get(field)]
         if missing:
-            raise Exception(
-                f"Missing required field(s): {', '.join(missing)}"
-            )
+            raise Exception(f"Missing required field(s): {', '.join(missing)}")
         return data
 
     def create(self, validated_data):
         post = Post.objects.create(**validated_data)
         return post
+    
 class PostUpdateSerializer(serializers.ModelSerializer):
+    tags = TagSerializer(many=True, required=False)
+    likes_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Post
-        fields = ['id', 'title', 'content', 'author', 'created_at', 'updated_at', 'is_published', 'is_deleted', 'tags', 'comments', 'likes_count']
-        read_only_fields = ['author', 'created_at', 'updated_at', 'is_deleted', 'comments', 'likes_count']
+        fields = [
+            'id', 'title', 'content', 'author', 'created_at', 'updated_at',
+            'is_published', 'is_deleted', 'tags', 'comments', 'likes_count'
+        ]
+        read_only_fields = [
+            'author', 'created_at', 'updated_at', 'is_deleted', 'comments', 'likes_count'
+        ]
 
     def update(self, instance, validated_data):
         tags_data = validated_data.pop('tags', None)
-        
-        if tags_data:
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        if tags_data is not None:
             instance.tags.clear()
             for tag_data in tags_data:
                 tag, _ = Tag.objects.get_or_create(name=tag_data['name'])
                 instance.tags.add(tag)
+
         instance.save()
         return instance
 
+    def get_likes_count(self, obj):
+        return obj.likes.count()
 
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:

@@ -128,49 +128,40 @@ class PostListCreateView(generics.ListCreateAPIView):
        
 
 class PostRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-      serializer_class = PostSerializer
-      permission_classes = [IsAuthenticated]
-      
-      def get_object(self):
+    serializer_class = PostSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
         post_id = self.kwargs.get("pk")
         post = Post.objects.filter(id=post_id, author=self.request.user, is_deleted=False).first()
-        if post:
-            return post
-        return Response({"status": "failed","response_code": status.HTTP_404_NOT_FOUND,"message": "Post not found or doesn't belong to you"})
+        if not post:
+            return Response({"status": "failed", "response_code": status.HTTP_404_NOT_FOUND, "message": "Post not found"})
+        return post
 
-      def get(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         post = self.get_object()
-        if isinstance(post, Response):
-            return post
         serializer = PostSerializer(post)
         return Response({"status": "success","response_code": status.HTTP_200_OK,"post": serializer.data })
 
-      def patch(self, request, *args, **kwargs):
+    def patch(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            if isinstance(instance, Response):
-                return instance
-            serializer = PostSerializer(instance, data=request.data, partial=True)
+            serializer = PostUpdateSerializer(instance, data=request.data, partial=True)
 
             if serializer.is_valid():
-                # Use the update method for partial updates
-                serializer.update(instance, serializer.validated_data)
-                return Response({"status": "success","response_code": status.HTTP_200_OK,"message": "Post updated successfully" })
+                serializer.save()
+                return Response({"status": "success","response_code": status.HTTP_200_OK,"message": "Post updated successfully"})
 
-            return Response({ "status": "failed","response_code": status.HTTP_400_BAD_REQUEST, "message": serializer.errors})
+            return Response({"status": "failed","response_code": status.HTTP_400_BAD_REQUEST,"message": serializer.errors})
 
         except Exception as e:
-            return Response({"status": "error","response_code": status.HTTP_500_INTERNAL_SERVER_ERROR,"message": "Something went wrong","error": str(e)})
+            return Response({"status": "error","response_code": status.HTTP_500_INTERNAL_SERVER_ERROR,"message": "Something went wrong","error": str(e) })
 
-      def delete(self, request, *args, **kwargs):
+    def delete(self, request, *args, **kwargs):
         post = self.get_object()
-        if isinstance(post, Response):
-            return post
-
         post.is_deleted = True
         post.save()
-
-        return Response({"status": "success","response_code": status.HTTP_200_OK, "message": "Post deleted successfully" })
+        return Response({ "status": "success", "response_code": status.HTTP_200_OK, "message": "Post deleted successfully"})
 
 
 class CommentCRUDView(generics.GenericAPIView):
